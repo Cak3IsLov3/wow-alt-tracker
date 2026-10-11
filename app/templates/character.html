@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}{{ character.name }} · WoW Alt Tracker{% endblock %}
+{% block content %}
+<section class="panel summary" style="--class-color: {{ class_colors.get(character.class_name, '#f8b700') }}">
+  <div>
+    <h1 class="name">{{ character.name }}</h1>
+    <p class="muted">{{ character.class_name }} · level {{ character.level }} · {{ character.realm_name }}</p>
+    {% if character.sync_error %}<p class="warn small">{{ character.sync_error }}</p>
+    {% elif row.stale %}<p class="warn small">Niet ingelogd sinds de reset; data kan verouderd zijn.</p>{% endif %}
+  </div>
+  <div class="stat"><strong>{{ character.item_level or '–' }}</strong><span>item level</span></div>
+  <div class="stat"><strong>{{ character.mplus_score if character.mplus_score is not none else '–' }}</strong><span>M+-score</span></div>
+</section>
+
+<div class="columns">
+  <section class="panel">
+    <h2>Week {{ week }}</h2>
+    {% include "_checklist.html" %}
+  </section>
+
+  <section class="panel">
+    <h2>Gear</h2>
+    <p class="advice">{{ advice_text }}</p>
+    {% if advice %}
+    <table>
+      <thead><tr><th>Prio</th><th>Slot</th><th>ilvl</th><th>Item</th></tr></thead>
+      <tbody>
+        {% for item in advice %}
+        <tr class="{{ 'upgrade' if item.priority <= 2 }}">
+          <td>{{ item.priority }}</td>
+          <td>{{ item.slot_name }}</td>
+          <td>{{ item.item_level }}</td>
+          <td class="muted">{{ item.name }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+  </section>
+</div>
+
+<section class="panel">
+  <h2>Geschiedenis</h2>
+  <canvas id="history" data-ids="{{ character.id }}" height="90"></canvas>
+</section>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="/static/charts.js"></script>
+{% endblock %}

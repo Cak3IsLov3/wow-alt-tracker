@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel">
+  <h1>Characters</h1>
+  <p class="muted">Alleen actieve characters worden gesynchroniseerd en getoond in de planner.</p>
+  <table>
+    <thead>
+      <tr><th>Naam</th><th>Klasse</th><th>Level</th><th>ilvl</th><th>M+</th><th>Realm</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for c in characters %}
+      <tr class="{{ '' if c.active else 'inactive' }}">
+        <td><a href="/characters/{{ c.id }}" style="color: {{ class_colors.get(c.class_name, 'inherit') }}">{{ c.name }}</a></td>
+        <td>{{ c.class_name }}</td>
+        <td>{{ c.level }}</td>
+        <td>{{ c.item_level or '–' }}</td>
+        <td>{{ c.mplus_score if c.mplus_score is not none else '–' }}</td>
+        <td>{{ c.realm_name }}</td>
+        <td>
+          <form method="post" action="/characters/{{ c.id }}/active">
+            <button>{{ 'Verbergen' if c.active else 'Activeren' }}</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="muted">Nog geen characters. Klik op “Sync nu”.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section class="panel">
+  <h2>Account</h2>
+  <p class="muted">Ontkoppelen verwijdert de opgeslagen Battle.net-tokens. Je characters en geschiedenis blijven bewaard.</p>
+  <form method="post" action="/auth/unlink"><button class="danger">Account ontkoppelen</button></form>
+</section>
+{% endblock %}

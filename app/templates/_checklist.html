@@ -1,0 +1,20 @@
+<div class="checklist" id="checklist-{{ row.character.id }}">
+  <div class="progress" title="{{ row.done }}/{{ row.total }}"><span style="width: {{ row.pct }}%"></span></div>
+  <p class="muted small">{{ row.done }}/{{ row.total }} voltooid · {{ row.open }} open</p>
+  <ul>
+    {% for item in row.tasks %}
+    <li class="{{ 'done' if item.completed }}">
+      <label>
+        <input type="checkbox" {{ 'checked' if item.completed }}
+               hx-post="/characters/{{ row.character.id }}/tasks/{{ item.task.id }}/toggle"
+               hx-target="#checklist-{{ row.character.id }}" hx-swap="outerHTML">
+        <span>{{ item.task.name }}</span>
+      </label>
+      {% if item.detail %}<span class="badge">{{ item.detail }}</span>{% endif %}
+      {% if item.completed and item.source == 'api' %}<span class="badge api">auto</span>{% endif %}
+    </li>
+    {% else %}
+    <li class="muted">Geen taken ingeschakeld.</li>
+    {% endfor %}
+  </ul>
+</div>

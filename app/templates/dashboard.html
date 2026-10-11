@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel summary">
+  <div>
+    <h1>Week {{ week }}</h1>
+    <p class="muted">Volgende reset: {{ next_reset.strftime('%a %d-%m %H:%M') }} UTC</p>
+  </div>
+  <div class="stat"><strong>{{ summary.done }}/{{ summary.total }}</strong><span>taken voltooid</span></div>
+  <div class="stat"><strong>{{ summary.pct }}%</strong><span>over {{ summary.characters }} alts</span></div>
+</section>
+
+<form method="get" action="/" class="filters">
+  <label>Klasse
+    <select name="klass">
+      <option value="">Alle</option>
+      {% for name in classes %}
+      <option {{ 'selected' if filters.klass == name }}>{{ name }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Min. level
+    <input type="number" name="min_level" min="1" value="{{ filters.min_level }}">
+  </label>
+  <label>Voortgang
+    <select name="status">
+      <option value="">Alles</option>
+      <option value="open" {{ 'selected' if filters.status == 'open' }}>Nog open</option>
+      <option value="done" {{ 'selected' if filters.status == 'done' }}>Helemaal klaar</option>
+    </select>
+  </label>
+  <button>Filter</button>
+</form>
+
+<section class="grid">
+  {% for row in rows %}
+  {% set c = row.character %}
+  <article class="card" style="--class-color: {{ class_colors.get(c.class_name, '#f8b700') }}">
+    <header>
+      <a class="name" href="/characters/{{ c.id }}">{{ c.name }}</a>
+      <span class="muted small">{{ c.class_name }} · {{ c.level }} · {{ c.realm_name }}</span>
+    </header>
+    <p class="stats">
+      <span>ilvl <strong>{{ c.item_level or '–' }}</strong></span>
+      <span>M+ <strong>{{ c.mplus_score if c.mplus_score is not none else '–' }}</strong></span>
+    </p>
+    {% if c.sync_error %}<p class="warn small">{{ c.sync_error }}</p>
+    {% elif row.stale %}<p class="warn small">Niet ingelogd sinds de reset; data kan verouderd zijn.</p>{% endif %}
+    {% include "_checklist.html" %}
+  </article>
+  {% else %}
+  <p class="muted">Geen characters gevonden. Zet ze aan onder <a href="/characters">Characters</a> of pas je filter aan.</p>
+  {% endfor %}
+</section>
+{% endblock %}

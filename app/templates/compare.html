@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel">
+  <h1>Characters vergelijken</h1>
+  <form method="get" action="/compare" class="row">
+    {% for field, selected in [('a', a), ('b', b)] %}
+    <label>Character {{ loop.index }}
+      <select name="{{ field }}">
+        <option value="">Kies…</option>
+        {% for c in characters %}
+        <option value="{{ c.id }}" {{ 'selected' if selected == c.id|string }}>{{ c.name }} ({{ c.class_name }})</option>
+        {% endfor %}
+      </select>
+    </label>
+    {% endfor %}
+    <button class="primary">Vergelijk</button>
+  </form>
+  {% if a and b %}
+  <canvas id="history" data-ids="{{ a }},{{ b }}" height="110"></canvas>
+  {% else %}
+  <p class="muted">Kies twee characters om hun item level en M+-score over tijd te vergelijken.</p>
+  {% endif %}
+</section>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="/static/charts.js"></script>
+{% endblock %}

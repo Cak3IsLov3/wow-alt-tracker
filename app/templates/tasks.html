@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel">
+  <h1>Wekelijkse taken</h1>
+  <p class="muted">Ingeschakelde taken verschijnen bij elk actief character. Taken met “auto” worden bij een sync afgevinkt op basis van de API.</p>
+  <table>
+    <thead><tr><th>Taak</th><th>Type</th><th>Afvinken</th><th></th><th></th></tr></thead>
+    <tbody>
+      {% for task in tasks %}
+      <tr class="{{ '' if task.default_on else 'inactive' }}">
+        <td>{{ task.name }}</td>
+        <td>{{ task_types.get(task.type, task.type) }}</td>
+        <td>{% if task.auto_key %}<span class="badge api">auto</span>{% else %}handmatig{% endif %}</td>
+        <td>
+          <form method="post" action="/tasks/{{ task.id }}/toggle">
+            <button>{{ 'Uitzetten' if task.default_on else 'Aanzetten' }}</button>
+          </form>
+        </td>
+        <td>
+          {% if not task.auto_key %}
+          <form method="post" action="/tasks/{{ task.id }}/delete"><button class="danger">Verwijderen</button></form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section class="panel">
+  <h2>Eigen taak toevoegen</h2>
+  <form method="post" action="/tasks" class="row">
+    <label>Naam <input name="name" required maxlength="80" placeholder="Profession weekly"></label>
+    <label>Type
+      <select name="type">
+        {% for value, label in task_types.items() %}
+        <option value="{{ value }}" {{ 'selected' if value == 'custom' }}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <button class="primary">Toevoegen</button>
+  </form>
+</section>
+{% endblock %}

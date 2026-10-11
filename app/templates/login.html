@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel narrow">
+  <h1>Al je alts in één overzicht</h1>
+  <p class="muted">Log in met Battle.net om je characters, wekelijkse taken en gear te volgen.</p>
+  {% if not configured %}
+  <div class="flash error">
+    BLIZZARD_CLIENT_ID en BLIZZARD_CLIENT_SECRET zijn nog niet ingesteld. Zie <code>.env.example</code>.
+  </div>
+  {% endif %}
+  <form method="get" action="/auth/login" class="row">
+    <label>Regio
+      <select name="region">
+        {% for region in regions %}
+        <option value="{{ region }}" {{ 'selected' if region == default_region }}>{{ region|upper }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <button class="primary">Inloggen met Battle.net</button>
+  </form>
+</section>
+{% endblock %}
