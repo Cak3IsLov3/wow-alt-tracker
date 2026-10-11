@@ -45,7 +45,7 @@ Then open <http://127.0.0.1:8000/demo-login>.
 | Gear analysis | Item level per slot; the lowest slots get the highest priority |
 | Planner | Dashboard sorted by most open tasks, with a weekly summary and filters |
 | History | One snapshot per character per week; chart of item level and M+ score, comparison of two characters |
-| Sync | "Sync now" button and scheduled sync (hourly by default), with rate limiting, retries and an ETag cache |
+| Sync | "Sync now" button and scheduled sync (every 30 minutes by default), with rate limiting, retries and an ETag cache |
 
 ## Architecture
 

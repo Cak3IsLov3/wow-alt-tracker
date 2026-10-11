@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     token_encryption_key: str = ""
     database_url: str = "sqlite:///./wow_alt_tracker.db"
     default_region: str = "eu"
-    sync_interval_minutes: int = 60
+    sync_interval_minutes: int = 30
 
 
 @lru_cache
