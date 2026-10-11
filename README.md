@@ -4,6 +4,14 @@ Webapp voor WoW-spelers met meerdere characters. Je logt in met Battle.net, de
 app haalt je characters op en toont per character de wekelijkse to-do's, de
 gear-status en de voortgang over tijd.
 
+![Planner met alle alts, gesorteerd op openstaande taken](docs/screenshots/planner.png)
+
+| Character: checklist, gear-advies en geschiedenis | Twee characters vergelijken |
+| --- | --- |
+| ![Characterpagina](docs/screenshots/character.png) | ![Vergelijking](docs/screenshots/compare.png) |
+
+De screenshots tonen de demodata uit `scripts/demo.py`, geen echt account.
+
 ## Starten
 
 1. Maak een client aan op <https://develop.battle.net/access/clients> en zet de
@@ -18,6 +26,14 @@ uv run uvicorn app.main:app --reload
 ```
 
 Open daarna <http://localhost:8000>. Tests draai je met `uv run pytest`.
+
+Zonder Battle.net-client kun je de app bekijken met verzonnen data:
+
+```bash
+uv run python -m scripts.demo
+```
+
+Open dan <http://127.0.0.1:8000/demo-login>.
 
 ## Functies
 
@@ -50,6 +66,7 @@ app/
     planner.py       dashboardrijen, sortering, filters, samenvatting
   routes/            auth.py (login/callback/logout) en pages.py (de rest)
   templates/, static/  Jinja2 + HTMX, Chart.js
+scripts/demo.py      app met verzonnen data, zonder Battle.net
 tests/               pytest + respx
 ```
 
@@ -116,6 +133,5 @@ aan- of uitvinkt wordt door een sync niet overschreven.
 
 ## Nog niet gedaan
 
-- Screenshots in deze README
 - Docker Compose, PostgreSQL-test, Discord-meldingen, Raider.IO
 - Databasemigraties: tabellen worden bij het opstarten aangemaakt met `create_all`
