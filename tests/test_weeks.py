@@ -32,7 +32,7 @@ def test_next_reset_is_exactly_one_week_later():
 
 
 def test_reset_in_summer_time_is_six_local():
-    # 21 oktober 2026 valt nog in de zomertijd (CEST = UTC+2).
+    # 21 October 2026 is still in summer time (CEST = UTC+2).
     before = datetime(2026, 10, 21, 5, 59, tzinfo=AMSTERDAM)
     after = datetime(2026, 10, 21, 6, 0, tzinfo=AMSTERDAM)
     assert week_id(before) == "2026-W42"
@@ -40,7 +40,7 @@ def test_reset_in_summer_time_is_six_local():
 
 
 def test_reset_in_winter_time_is_five_local():
-    # De klok gaat op 25 oktober 2026 terug (CET = UTC+1).
+    # Clocks go back on 25 October 2026 (CET = UTC+1).
     before = datetime(2026, 10, 28, 4, 59, tzinfo=AMSTERDAM)
     after = datetime(2026, 10, 28, 5, 0, tzinfo=AMSTERDAM)
     assert week_id(before) == "2026-W43"
@@ -55,7 +55,7 @@ def test_week_stays_seven_days_across_dst_changes():
 
 
 def test_year_boundary_keeps_one_week_id():
-    # De week van woensdag 30 december 2026 loopt door tot in januari.
+    # The week of Wednesday 30 December 2026 runs into January.
     assert week_id(utc(2026, 12, 30, 4, 0)) == "2026-W53"
     assert week_id(utc(2026, 12, 31, 23, 59)) == "2026-W53"
     assert week_id(utc(2027, 1, 1, 0, 0)) == "2026-W53"

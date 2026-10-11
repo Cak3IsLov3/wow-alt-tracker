@@ -5,7 +5,7 @@ from cryptography.fernet import Fernet
 
 
 class TokenCipher:
-    """Versleutelt OAuth-tokens voordat ze de database in gaan."""
+    """Encrypts OAuth tokens before they are stored in the database."""
 
     def __init__(self, key: str = "", fallback_secret: str = ""):
         if not key:

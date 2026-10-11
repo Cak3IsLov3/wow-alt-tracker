@@ -1,4 +1,4 @@
-"""Voorbeeldantwoorden van Battle.net en de Blizzard Profile API."""
+"""Sample responses from Battle.net and the Blizzard Profile API."""
 
 from datetime import datetime, timedelta
 
@@ -65,7 +65,7 @@ def keystones(start: datetime, runs_this_week: int = 4) -> dict:
         {"completed_timestamp": _ms(start + timedelta(hours=i + 1)), "keystone_level": 10}
         for i in range(runs_this_week)
     ]
-    # Een oude run die de API nog kan teruggeven voor een character dat niet is ingelogd.
+    # An old run the API may still return for a character that has not logged in.
     stale = [{"completed_timestamp": _ms(start - timedelta(days=3)), "keystone_level": 12}]
     return {
         "current_mythic_rating": {"rating": 2450.37},
@@ -92,17 +92,17 @@ def raids(start: datetime) -> dict:
     return {
         "expansions": [
             {
-                # Oude content telt niet mee, ook niet met kills van deze week.
-                "expansion": {"id": 500, "name": "Vorige expansion"},
+                # Old content does not count, even with kills from this week.
+                "expansion": {"id": 500, "name": "Previous expansion"},
                 "instances": [
-                    {"instance": {"name": "Oude raid"}, "modes": [mode("MYTHIC", [this_week])]}
+                    {"instance": {"name": "Old raid"}, "modes": [mode("MYTHIC", [this_week])]}
                 ],
             },
             {
-                "expansion": {"id": 600, "name": "Huidige expansion"},
+                "expansion": {"id": 600, "name": "Current expansion"},
                 "instances": [
                     {
-                        "instance": {"name": "Nieuwe raid"},
+                        "instance": {"name": "New raid"},
                         "modes": [
                             mode("NORMAL", [this_week, this_week]),
                             mode("HEROIC", [this_week, last_week]),
@@ -115,7 +115,7 @@ def raids(start: datetime) -> dict:
 
 
 def mock_battlenet(respx_mock) -> dict:
-    """Mockt de OAuth-endpoints. Elk tokenverzoek krijgt een eigen token terug."""
+    """Mocks the OAuth endpoints. Each grant type gets its own token back."""
 
     def token(request: httpx.Request) -> httpx.Response:
         grant = dict(httpx.QueryParams(request.content.decode()))["grant_type"]

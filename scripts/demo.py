@@ -1,9 +1,9 @@
-"""Start de app met verzonnen data, zonder Battle.net-client.
+"""Starts the app with made-up data, without a Battle.net client.
 
     uv run python -m scripts.demo
 
-Open daarna http://127.0.0.1:8000/demo-login. De database staat in het
-geheugen en er wordt niets gesynchroniseerd.
+Then open http://127.0.0.1:8000/demo-login. The database lives in memory and
+nothing is synced.
 """
 
 import os
@@ -32,11 +32,11 @@ from app.weeks import utcnow, week_id
 
 WEEKS = 10
 
-# naam, klasse, level, item level, M+-score, runs deze week, raid-kills (normal, heroic), handmatig klaar
+# name, class, level, item level, M+ score, runs this week, raid kills (normal, heroic), manually done
 CHARACTERS = [
-    ("Thrallie", "Shaman", 90, 272, 2810.5, 8, (8, 8), ["Wekelijkse quest", "Great Vault ophalen", "Profession weekly"]),
-    ("Moonfeather", "Druid", 90, 266, 2344.0, 4, (8, 5), ["Wekelijkse quest", "Great Vault ophalen"]),
-    ("Zappyboi", "Mage", 90, 259, 1820.3, 2, (8, 0), ["Great Vault ophalen"]),
+    ("Thrallie", "Shaman", 90, 272, 2810.5, 8, (8, 8), ["Weekly quest", "Collect Great Vault", "Profession weekly"]),
+    ("Moonfeather", "Druid", 90, 266, 2344.0, 4, (8, 5), ["Weekly quest", "Collect Great Vault"]),
+    ("Zappyboi", "Mage", 90, 259, 1820.3, 2, (8, 0), ["Collect Great Vault"]),
     ("Holycow", "Paladin", 90, 251, 1205.8, 1, (3, 0), []),
     ("Stabbington", "Rogue", 90, 244, 640.0, 0, (0, 0), []),
     ("Felicia", "Warlock", 88, 221, 0.0, 0, (0, 0), []),
@@ -79,7 +79,7 @@ def seed(session: Session) -> User:
             level=level,
             item_level=ilvl,
             mplus_score=score,
-            # Het laatste character is deze week niet ingelogd.
+            # The last character has not logged in this week.
             last_login=now - (timedelta(days=12) if index == len(CHARACTERS) - 1 else timedelta(hours=3)),
             last_synced=now,
         )
@@ -100,7 +100,7 @@ def seed(session: Session) -> User:
                 snapshot.mplus_runs = runs
                 snapshot.gear = _gear(ilvl, rng)
                 snapshot.raid_progress = {
-                    difficulty: {"instance": "Demo-raid", "killed": killed, "total": 8}
+                    difficulty: {"instance": "Demo raid", "killed": killed, "total": 8}
                     for difficulty, killed in zip(("NORMAL", "HEROIC"), kills)
                     if killed
                 }

@@ -4,9 +4,9 @@ from sqlmodel import Session, select
 
 from app.models import Character, User, WeeklyTask, WeeklyTaskStatus
 
-TASK_TYPES = {"raid": "Raid", "mplus": "Mythic+", "quest": "Quest", "custom": "Eigen"}
+TASK_TYPES = {"raid": "Raid", "mplus": "Mythic+", "quest": "Quest", "custom": "Custom"}
 
-# (naam, type, standaard_aan, auto_key)
+# (name, type, default_on, auto_key)
 DEFAULT_TASKS = [
     ("Raid – LFR", "raid", False, "raid:LFR"),
     ("Raid – Normal", "raid", True, "raid:NORMAL"),
@@ -15,9 +15,9 @@ DEFAULT_TASKS = [
     ("Mythic+ – 1 run", "mplus", True, "mplus:1"),
     ("Mythic+ – 4 runs", "mplus", True, "mplus:4"),
     ("Mythic+ – 8 runs", "mplus", True, "mplus:8"),
-    ("Wekelijkse quest", "quest", True, None),
-    # De inhoud van de Great Vault zit niet in de API: alleen handmatig.
-    ("Great Vault ophalen", "quest", True, None),
+    ("Weekly quest", "quest", True, None),
+    # The Great Vault's contents are not in the API: manual only.
+    ("Collect Great Vault", "quest", True, None),
 ]
 
 
@@ -38,12 +38,12 @@ def _ms(moment: datetime) -> int:
 
 
 def raid_progress_this_week(raids: dict, week_start: datetime) -> dict[str, dict]:
-    """Per difficulty (LFR/NORMAL/HEROIC/MYTHIC) het aantal bosses dat sinds de
-    reset is gedood in de nieuwste expansion.
+    """Per difficulty (LFR/NORMAL/HEROIC/MYTHIC) the number of bosses killed
+    since the reset in the latest expansion.
 
-    De API toont alleen een totaal per boss plus `last_kill_timestamp`; een kill
-    telt voor deze week als die timestamp na de reset ligt. Per difficulty kiezen
-    we de raid waarin deze week gekilld is, en anders de nieuwste raid.
+    The API only exposes a total per boss plus `last_kill_timestamp`; a kill
+    counts for this week if that timestamp is after the reset. Per difficulty
+    we pick the raid with kills this week, or otherwise the newest raid.
     """
     expansions = raids.get("expansions") or []
     if not expansions:
@@ -71,11 +71,11 @@ def raid_progress_this_week(raids: dict, week_start: datetime) -> dict[str, dict
 
 
 def mplus_runs_this_week(profile: dict, week_start: datetime) -> int:
-    """Aantal runs in de huidige periode. De timestamp-check voorkomt dat de
-    runs van een character dat lang niet is ingelogd voor deze week meetellen.
+    """Number of runs in the current period. The timestamp check keeps runs
+    from a character that has not logged in for a while out of this week.
 
-    `best_runs` bevat de beste run per dungeon, dus dit is een ondergrens:
-    twee keer dezelfde dungeon telt als één run.
+    `best_runs` holds the best run per dungeon, so this is a lower bound:
+    running the same dungeon twice counts as one run.
     """
     runs = (profile.get("current_period") or {}).get("best_runs") or []
     start = _ms(week_start)
@@ -99,8 +99,8 @@ def apply_auto_checks(
     raid_progress: dict[str, dict],
     mplus_runs: int,
 ) -> None:
-    """Vinkt taken aan op basis van API-data. Wat de gebruiker handmatig heeft
-    gezet blijft staan."""
+    """Checks off tasks based on API data. Whatever the user set manually is
+    left alone."""
     tasks = session.exec(
         select(WeeklyTask).where(
             WeeklyTask.user_id == character.user_id, WeeklyTask.auto_key.is_not(None)

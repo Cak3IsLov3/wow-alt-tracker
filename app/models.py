@@ -20,8 +20,8 @@ class User(SQLModel, table=True):
 class OAuthToken(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id", unique=True)
-    access_token: str  # versleuteld
-    refresh_token: str | None = None  # versleuteld
+    access_token: str  # encrypted
+    refresh_token: str | None = None  # encrypted
     expires_at: datetime
 
 
@@ -65,7 +65,7 @@ class WeeklyTask(SQLModel, table=True):
     name: str
     type: str  # raid / mplus / quest / custom
     default_on: bool = True
-    # 'raid:HEROIC' of 'mplus:4'; leeg = alleen handmatig af te vinken
+    # 'raid:HEROIC' or 'mplus:4'; empty = can only be checked off manually
     auto_key: str | None = None
 
 
@@ -85,7 +85,7 @@ class GearSlotAdvice(SQLModel, table=True):
     snapshot_id: int = Field(foreign_key="charactersnapshot.id", index=True)
     slot: str
     item_level: int
-    priority: int  # 1 = eerst upgraden
+    priority: int  # 1 = upgrade first
 
 
 class CachedResponse(SQLModel, table=True):

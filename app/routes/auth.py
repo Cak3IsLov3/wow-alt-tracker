@@ -52,14 +52,14 @@ async def auth_callback(
     expected = request.session.pop("oauth_state", None)
     region = request.session.pop("oauth_region", request.app.state.settings.default_region)
     if not code or not expected or not secrets.compare_digest(state, expected):
-        flash(request, "Inloggen mislukt: ongeldige of verlopen aanvraag.", "error")
+        flash(request, "Login failed: invalid or expired request.", "error")
         return redirect("/login")
 
     try:
         token = await services.oauth.exchange_code(code)
         info = await services.oauth.userinfo(token.access_token)
     except OAuthError as exc:
-        flash(request, f"Inloggen mislukt: {exc}", "error")
+        flash(request, f"Login failed: {exc}", "error")
         return redirect("/login")
 
     battlenet_id = str(info.get("id") or info.get("sub"))
@@ -94,9 +94,9 @@ def unlink(
     user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
 ):
-    """Verwijdert de opgeslagen tokens; de characters en geschiedenis blijven staan."""
+    """Deletes the stored tokens; characters and history are kept."""
     session.exec(delete(OAuthToken).where(OAuthToken.user_id == user.id))
     session.commit()
     request.session.clear()
-    flash(request, "Je Battle.net-account is ontkoppeld en de tokens zijn verwijderd.")
+    flash(request, "Your Battle.net account has been unlinked and the tokens were deleted.")
     return redirect("/login")

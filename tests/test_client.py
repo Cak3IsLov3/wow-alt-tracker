@@ -68,7 +68,7 @@ async def test_gives_up_after_max_retries(blizzard, sleeps, respx_mock):
     with pytest.raises(BlizzardUnavailable):
         await blizzard.get("eu", PATH, "tok")
 
-    assert route.call_count == 4  # 1 poging + 3 retries
+    assert route.call_count == 4  # 1 attempt + 3 retries
     assert sleeps.delays == [0.5, 1.0, 2.0]
 
 

@@ -91,7 +91,7 @@ def build_row(
                 detail=_detail(task, snapshot),
             )
         )
-    # Niet ingelogd sinds de reset: de API-data kan dan verouderd zijn.
+    # Not logged in since the reset: the API data may be stale.
     stale = character.last_login is not None and as_utc(character.last_login) < start
     return CharacterRow(character=character, tasks=views, stale=stale)
 
@@ -106,7 +106,7 @@ def build_rows(
     min_level: int | None = None,
     completion: str = "",
 ) -> list[CharacterRow]:
-    """Actieve characters, gesorteerd op de meeste openstaande taken."""
+    """Active characters, sorted by most open tasks."""
     query = select(Character).where(Character.user_id == user.id, Character.active)
     if class_name:
         query = query.where(Character.class_name == class_name)

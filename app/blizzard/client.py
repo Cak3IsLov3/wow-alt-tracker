@@ -1,5 +1,5 @@
-"""HTTP-client voor de Blizzard Profile API met rate limiting, retries met
-backoff en een ETag-cache in de database."""
+"""HTTP client for the Blizzard Profile API with rate limiting, retries with
+backoff and an ETag cache in the database."""
 
 import asyncio
 import time
@@ -28,11 +28,11 @@ class BlizzardAuthError(BlizzardError):
 
 
 class BlizzardUnavailable(BlizzardError):
-    """De API bleef 429/5xx geven of was onbereikbaar, ook na retries."""
+    """The API kept returning 429/5xx or was unreachable, even after retries."""
 
 
 class RateLimiter:
-    """Sliding window: maximaal `max_calls` per `period` seconden."""
+    """Sliding window: at most `max_calls` per `period` seconds."""
 
     def __init__(
         self,
@@ -86,8 +86,8 @@ class BlizzardClient:
         session: Session | None = None,
         endpoint: str = "",
     ) -> dict:
-        """Haalt `path` op. Met `session` en `endpoint` loopt het verzoek via de
-        ETag-cache: bij een 304 komt de data uit de database."""
+        """Fetches `path`. With `session` and `endpoint` the request goes through
+        the ETag cache: on a 304 the data comes from the database."""
         url = f"https://{region}.api.blizzard.com{path}"
         params = {"namespace": f"profile-{region}", "locale": LOCALES.get(region, "en_US")}
         headers = {"Authorization": f"Bearer {token}"}
@@ -125,7 +125,7 @@ class BlizzardClient:
             try:
                 response = await self.http.get(url, params=params, headers=headers)
             except httpx.TransportError as exc:
-                problem = f"netwerkfout: {exc!r}"
+                problem = f"network error: {exc!r}"
             else:
                 status = response.status_code
                 if status in (200, 304):
@@ -133,13 +133,13 @@ class BlizzardClient:
                 if status == 404:
                     raise BlizzardNotFound(url)
                 if status in (401, 403):
-                    raise BlizzardAuthError(f"{status} voor {url}")
+                    raise BlizzardAuthError(f"{status} for {url}")
                 if status != 429 and status < 500:
-                    raise BlizzardError(f"Onverwachte status {status} voor {url}")
+                    raise BlizzardError(f"Unexpected status {status} for {url}")
                 problem = f"status {status}"
                 retry_after = response.headers.get("Retry-After", "")
                 if retry_after.isdigit():
                     delay = min(float(retry_after), self.max_backoff)
             if attempt < self.max_retries:
                 await self.sleep(delay)
-        raise BlizzardUnavailable(f"{url} niet beschikbaar ({problem})")
+        raise BlizzardUnavailable(f"{url} unavailable ({problem})")

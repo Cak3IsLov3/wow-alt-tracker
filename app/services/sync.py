@@ -26,7 +26,7 @@ from app.weeks import as_utc, utcnow, week_id, week_start
 
 log = logging.getLogger(__name__)
 
-UNAVAILABLE = "De Blizzard API is even niet beschikbaar. Probeer het later opnieuw."
+UNAVAILABLE = "The Blizzard API is temporarily unavailable. Please try again later."
 
 
 @dataclass
@@ -36,14 +36,14 @@ class SyncResult:
     ok: bool = True
 
     def message(self) -> str:
-        parts = [f"{self.synced} character(s) gesynchroniseerd."] if self.ok else []
+        parts = [f"{self.synced} character(s) synced."] if self.ok else []
         return " ".join(parts + self.notes)
 
 
 async def sync_account_characters(
     session: Session, client: BlizzardClient, user: User, token: str
 ) -> int:
-    """Haalt de characterlijst van het account op (vereist het user-token)."""
+    """Fetches the account's character list (requires the user token)."""
     data = await client.get(user.region, "/profile/user/wow", token)
     found = [c for account in data.get("wow_accounts", []) for c in account.get("characters", [])]
     existing = {
@@ -54,8 +54,8 @@ async def sync_account_characters(
     for entry in found:
         character = existing.get(entry["id"])
         if character is None:
-            # Nieuwe characters staan alleen aan als ze op het hoogste level zitten;
-            # de rest kan de gebruiker zelf aanzetten.
+            # New characters are only active if they are at the highest level;
+            # the user can enable the rest.
             character = Character(
                 user_id=user.id,
                 blizzard_id=entry["id"],
@@ -172,15 +172,15 @@ async def sync_user(
         await sync_account_characters(session, services.blizzard, user, user_token)
     except (ReauthRequired, BlizzardAuthError):
         result.notes.append(
-            "Je Battle.net-sessie is verlopen; log opnieuw in om de characterlijst te verversen."
+            "Your Battle.net session has expired; log in again to refresh the character list."
         )
     except BlizzardUnavailable:
         result.ok = False
         result.notes.append(UNAVAILABLE)
         return result
     except BlizzardError as exc:
-        log.warning("Characterlijst ophalen mislukt: %s", exc)
-        result.notes.append("De characterlijst kon niet worden opgehaald.")
+        log.warning("Fetching the character list failed: %s", exc)
+        result.notes.append("The character list could not be fetched.")
 
     try:
         app_token = await services.oauth.get_app_token()
@@ -200,8 +200,8 @@ async def sync_user(
             )
             result.synced += 1
         except BlizzardNotFound:
-            # Blizzard geeft 404 voor characters die lang niet zijn ingelogd.
-            character.sync_error = "Geen profieldata (lang niet ingelogd?)"
+            # Blizzard returns 404 for characters that have not logged in for a long time.
+            character.sync_error = "No profile data (not logged in for a long time?)"
             session.add(character)
             session.commit()
             failed += 1
@@ -210,24 +210,24 @@ async def sync_user(
             result.notes.append(UNAVAILABLE)
             return result
         except BlizzardError as exc:
-            log.warning("Sync van %s mislukt: %s", character.name, exc)
-            character.sync_error = "Synchronisatie mislukt"
+            log.warning("Sync of %s failed: %s", character.name, exc)
+            character.sync_error = "Sync failed"
             session.add(character)
             session.commit()
             failed += 1
     if failed:
-        result.notes.append(f"{failed} character(s) konden niet worden opgehaald.")
+        result.notes.append(f"{failed} character(s) could not be fetched.")
     return result
 
 
 async def sync_all_users(engine: Engine, services: Services) -> None:
-    """Geplande sync. Werkt ook als het user-token is verlopen, want de
-    characterprofielen gaan via het app-token."""
+    """Scheduled sync. Also works when the user token has expired, because
+    character profiles are fetched with the app token."""
     with Session(engine) as session:
         for user in session.exec(select(User)).all():
             try:
                 result = await sync_user(session, services, user)
                 log.info("Sync %s: %s", user.battletag, result.message())
             except Exception:
-                log.exception("Sync van %s mislukt", user.battletag)
+                log.exception("Sync of %s failed", user.battletag)
                 session.rollback()

@@ -26,7 +26,7 @@ WEEK = week_id(NOW)
 
 
 def _completed(session, character, week=WEEK) -> dict[str, str]:
-    """Naam -> bron van alle afgevinkte taken."""
+    """Name -> source of all completed tasks."""
     rows = session.exec(
         select(WeeklyTask.name, WeeklyTaskStatus.source)
         .join(WeeklyTaskStatus, WeeklyTaskStatus.task_id == WeeklyTask.id)
@@ -42,9 +42,9 @@ def _completed(session, character, week=WEEK) -> dict[str, str]:
 def test_raid_progress_counts_kills_since_reset_in_latest_expansion():
     progress = raid_progress_this_week(samples.raids(START), START)
 
-    assert progress["NORMAL"] == {"instance": "Nieuwe raid", "killed": 2, "total": 2}
-    assert progress["HEROIC"] == {"instance": "Nieuwe raid", "killed": 1, "total": 2}
-    assert "MYTHIC" not in progress  # alleen in de oude expansion
+    assert progress["NORMAL"] == {"instance": "New raid", "killed": 2, "total": 2}
+    assert progress["HEROIC"] == {"instance": "New raid", "killed": 1, "total": 2}
+    assert "MYTHIC" not in progress  # only in the old expansion
 
 
 def test_raid_progress_handles_missing_data():
@@ -61,7 +61,7 @@ def test_evaluate_auto_key():
     progress = raid_progress_this_week(samples.raids(START), START)
 
     assert evaluate_auto_key("raid:NORMAL", progress, 0)
-    assert not evaluate_auto_key("raid:HEROIC", progress, 0)  # 1/2 is geen full clear
+    assert not evaluate_auto_key("raid:HEROIC", progress, 0)  # 1/2 is not a full clear
     assert not evaluate_auto_key("raid:MYTHIC", progress, 0)
     assert evaluate_auto_key("mplus:4", progress, 4)
     assert not evaluate_auto_key("mplus:8", progress, 4)
@@ -85,7 +85,7 @@ async def test_sync_stores_snapshot_and_gear_advice(blizzard, session, character
     await sync_character(session, blizzard, character, "eu", "tok", NOW)
     await sync_character(session, blizzard, character, "eu", "tok", NOW + timedelta(hours=1))
 
-    snapshot = session.exec(select(CharacterSnapshot)).one()  # één per week
+    snapshot = session.exec(select(CharacterSnapshot)).one()  # one per week
     assert snapshot.week_id == WEEK
     assert snapshot.item_level == 265
     assert snapshot.mythic_plus_score == 2450.4
@@ -115,14 +115,14 @@ async def test_sync_updates_auto_status_when_progress_changes(
 async def test_manual_choice_survives_sync(blizzard, session, user, character, respx_mock):
     samples.mock_profile_api(respx_mock, START)
     tasks = {t.name: t for t in session.exec(select(WeeklyTask)).all()}
-    toggle_manual(session, character, tasks["Great Vault ophalen"], WEEK)
+    toggle_manual(session, character, tasks["Collect Great Vault"], WEEK)
     toggle_manual(session, character, tasks["Raid – Heroic"], WEEK)
 
     await sync_character(session, blizzard, character, "eu", "tok", NOW)
 
     completed = _completed(session, character)
-    assert completed["Great Vault ophalen"] == "manual"
-    assert completed["Raid – Heroic"] == "manual"  # API zegt 1/2, handmatig wint
+    assert completed["Collect Great Vault"] == "manual"
+    assert completed["Raid – Heroic"] == "manual"  # API says 1/2, manual wins
 
 
 async def test_checklist_resets_after_weekly_reset(blizzard, session, user, character, respx_mock):
@@ -136,7 +136,7 @@ async def test_checklist_resets_after_weekly_reset(blizzard, session, user, char
 
     assert next_week.done == 0
     assert next_week.open == next_week.total
-    assert next_week.stale  # laatste login ligt voor de nieuwe reset
+    assert next_week.stale  # last login is before the new reset
 
 
 async def test_planner_sorts_by_open_tasks_and_summarizes(
@@ -175,4 +175,4 @@ async def test_task_details_show_progress(blizzard, session, user, character, re
 
     assert details["Raid – Heroic"] == "1/2"
     assert details["Mythic+ – 8 runs"] == "4/8"
-    assert details["Great Vault ophalen"] == ""
+    assert details["Collect Great Vault"] == ""

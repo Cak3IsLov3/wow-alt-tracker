@@ -1,11 +1,11 @@
-"""Battle.net OAuth 2.0: Authorization Code Flow voor gebruikers en
-Client Credentials voor de app zelf.
+"""Battle.net OAuth 2.0: Authorization Code Flow for users and Client
+Credentials for the app itself.
 
-Let op: Battle.net geeft bij de Authorization Code Flow normaal gesproken geen
-refresh token mee; een user-token is 24 uur geldig. Krijgen we er toch een,
-dan verversen we vlak voor verloop. Zonder refresh token moet de gebruiker
-opnieuw inloggen (ReauthRequired). Characterprofielen zijn publiek en worden
-daarom met het app-token opgehaald, dat we zelf altijd kunnen vernieuwen.
+Note: Battle.net normally does not return a refresh token for the
+Authorization Code Flow; a user token is valid for 24 hours. If we do get one,
+we refresh shortly before expiry. Without a refresh token the user has to log
+in again (ReauthRequired). Character profiles are public, so they are fetched
+with the app token, which we can always renew ourselves.
 """
 
 from collections.abc import Callable
@@ -33,7 +33,7 @@ class OAuthError(Exception):
 
 
 class ReauthRequired(OAuthError):
-    """Het user-token is verlopen en kan niet ververst worden."""
+    """The user token has expired and cannot be refreshed."""
 
 
 @dataclass
@@ -75,9 +75,9 @@ class BattleNetOAuth:
         try:
             response = await self.http.post(TOKEN_URL, data=data, auth=auth)
         except httpx.TransportError as exc:
-            raise OAuthError(f"Battle.net is niet bereikbaar: {exc}") from exc
+            raise OAuthError(f"Battle.net is unreachable: {exc}") from exc
         if response.status_code != 200:
-            raise OAuthError(f"Battle.net weigerde het tokenverzoek ({response.status_code})")
+            raise OAuthError(f"Battle.net rejected the token request ({response.status_code})")
         body = response.json()
         return TokenResponse(
             access_token=body["access_token"],
@@ -105,9 +105,9 @@ class BattleNetOAuth:
                 USERINFO_URL, headers={"Authorization": f"Bearer {access_token}"}
             )
         except httpx.TransportError as exc:
-            raise OAuthError(f"Battle.net is niet bereikbaar: {exc}") from exc
+            raise OAuthError(f"Battle.net is unreachable: {exc}") from exc
         if response.status_code != 200:
-            raise OAuthError(f"Kon je Battle.net-profiel niet ophalen ({response.status_code})")
+            raise OAuthError(f"Could not fetch your Battle.net profile ({response.status_code})")
         return response.json()
 
     def store_token(self, session: Session, user: User, token: TokenResponse) -> OAuthToken:
@@ -123,14 +123,14 @@ class BattleNetOAuth:
         return row
 
     async def get_user_token(self, session: Session, user: User) -> str:
-        """Geeft een geldig user-token terug en ververst het vlak voor verloop."""
+        """Returns a valid user token, refreshing it shortly before expiry."""
         row = session.exec(select(OAuthToken).where(OAuthToken.user_id == user.id)).first()
         if row is None:
-            raise ReauthRequired("Geen token opgeslagen")
+            raise ReauthRequired("No token stored")
         if as_utc(row.expires_at) - REFRESH_MARGIN > self.clock():
             return self.cipher.decrypt(row.access_token)
         if not row.refresh_token:
-            raise ReauthRequired("Token verlopen")
+            raise ReauthRequired("Token expired")
         try:
             token = await self.refresh(self.cipher.decrypt(row.refresh_token))
         except OAuthError as exc:
@@ -139,7 +139,7 @@ class BattleNetOAuth:
         return token.access_token
 
     async def get_app_token(self) -> str:
-        """Client Credentials-token, in het geheugen gecachet tot vlak voor verloop."""
+        """Client Credentials token, cached in memory until shortly before expiry."""
         now = self.clock()
         if self._app_token and self._app_token_expires and self._app_token_expires > now:
             return self._app_token

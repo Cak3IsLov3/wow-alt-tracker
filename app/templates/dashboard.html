@@ -3,16 +3,16 @@
 <section class="panel summary">
   <div>
     <h1>Week {{ week }}</h1>
-    <p class="muted">Volgende reset: {{ next_reset.strftime('%a %d-%m %H:%M') }} UTC</p>
+    <p class="muted">Next reset: {{ next_reset.strftime('%a %d-%m %H:%M') }} UTC</p>
   </div>
-  <div class="stat"><strong>{{ summary.done }}/{{ summary.total }}</strong><span>taken voltooid</span></div>
-  <div class="stat"><strong>{{ summary.pct }}%</strong><span>over {{ summary.characters }} alts</span></div>
+  <div class="stat"><strong>{{ summary.done }}/{{ summary.total }}</strong><span>tasks done</span></div>
+  <div class="stat"><strong>{{ summary.pct }}%</strong><span>across {{ summary.characters }} alts</span></div>
 </section>
 
 <form method="get" action="/" class="filters">
-  <label>Klasse
+  <label>Class
     <select name="klass">
-      <option value="">Alle</option>
+      <option value="">All</option>
       {% for name in classes %}
       <option {{ 'selected' if filters.klass == name }}>{{ name }}</option>
       {% endfor %}
@@ -21,11 +21,11 @@
   <label>Min. level
     <input type="number" name="min_level" min="1" value="{{ filters.min_level }}">
   </label>
-  <label>Voortgang
+  <label>Progress
     <select name="status">
-      <option value="">Alles</option>
-      <option value="open" {{ 'selected' if filters.status == 'open' }}>Nog open</option>
-      <option value="done" {{ 'selected' if filters.status == 'done' }}>Helemaal klaar</option>
+      <option value="">All</option>
+      <option value="open" {{ 'selected' if filters.status == 'open' }}>Still open</option>
+      <option value="done" {{ 'selected' if filters.status == 'done' }}>All done</option>
     </select>
   </label>
   <button>Filter</button>
@@ -44,11 +44,11 @@
       <span>M+ <strong>{{ c.mplus_score if c.mplus_score is not none else '–' }}</strong></span>
     </p>
     {% if c.sync_error %}<p class="warn small">{{ c.sync_error }}</p>
-    {% elif row.stale %}<p class="warn small">Niet ingelogd sinds de reset; data kan verouderd zijn.</p>{% endif %}
+    {% elif row.stale %}<p class="warn small">Not logged in since the reset; data may be stale.</p>{% endif %}
     {% include "_checklist.html" %}
   </article>
   {% else %}
-  <p class="muted">Geen characters gevonden. Zet ze aan onder <a href="/characters">Characters</a> of pas je filter aan.</p>
+  <p class="muted">No characters found. Enable them under <a href="/characters">Characters</a> or adjust your filter.</p>
   {% endfor %}
 </section>
 {% endblock %}

@@ -1,26 +1,26 @@
 SLOT_NAMES = {
-    "HEAD": "Hoofd",
-    "NECK": "Nek",
-    "SHOULDER": "Schouders",
-    "BACK": "Rug",
-    "CHEST": "Borst",
-    "WRIST": "Polsen",
-    "HANDS": "Handen",
-    "WAIST": "Riem",
-    "LEGS": "Benen",
-    "FEET": "Voeten",
+    "HEAD": "Head",
+    "NECK": "Neck",
+    "SHOULDER": "Shoulders",
+    "BACK": "Back",
+    "CHEST": "Chest",
+    "WRIST": "Wrists",
+    "HANDS": "Hands",
+    "WAIST": "Waist",
+    "LEGS": "Legs",
+    "FEET": "Feet",
     "FINGER_1": "Ring 1",
     "FINGER_2": "Ring 2",
     "TRINKET_1": "Trinket 1",
     "TRINKET_2": "Trinket 2",
-    "MAIN_HAND": "Hoofdhand",
-    "OFF_HAND": "Nevenhand",
+    "MAIN_HAND": "Main hand",
+    "OFF_HAND": "Off hand",
 }
 COSMETIC_SLOTS = {"SHIRT", "TABARD"}
 
 
 def parse_equipment(equipment: dict) -> list[dict]:
-    """Zet het equipment-antwoord van de API om naar een lijst slots."""
+    """Converts the API's equipment response into a list of slots."""
     gear = []
     for item in equipment.get("equipped_items", []):
         slot = item.get("slot", {}).get("type", "")
@@ -40,8 +40,8 @@ def parse_equipment(equipment: dict) -> list[dict]:
 
 
 def compute_advice(gear: list[dict]) -> list[dict]:
-    """Sorteert slots van laag naar hoog item level. Prioriteit 1 = eerst
-    upgraden; slots met hetzelfde item level delen een prioriteit."""
+    """Sorts slots from lowest to highest item level. Priority 1 = upgrade
+    first; slots with the same item level share a priority."""
     ordered = sorted(gear, key=lambda g: (g["item_level"], g["slot_name"]))
     advice = []
     priority = 0
@@ -57,7 +57,7 @@ def compute_advice(gear: list[dict]) -> list[dict]:
 def advice_text(advice: list[dict], count: int = 2) -> str:
     names = [a["slot_name"] for a in advice[:count]]
     if not names:
-        return "Nog geen gear-data. Synchroniseer dit character eerst."
+        return "No gear data yet. Sync this character first."
     if len(names) == 1:
-        return f"Je laagste slot is {names[0]}"
-    return f"Je laagste slots zijn {', '.join(names[:-1])} en {names[-1]}"
+        return f"Your lowest slot is {names[0]}"
+    return f"Your lowest slots are {', '.join(names[:-1])} and {names[-1]}"

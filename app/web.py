@@ -1,4 +1,4 @@
-"""Gedeelde helpers voor de routes: templates, flash-meldingen en de ingelogde gebruiker."""
+"""Shared helpers for the routes: templates, flash messages and the logged-in user."""
 
 from pathlib import Path
 

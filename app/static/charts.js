@@ -1,4 +1,4 @@
-// Tekent item level (linker as) en M+-score (rechter as, stippellijn) per week.
+// Draws item level (left axis) and M+ score (right axis, dashed line) per week.
 (async () => {
   const canvas = document.getElementById("history");
   if (!canvas || !window.Chart) return;
@@ -7,7 +7,7 @@
   if (!response.ok) return;
   const data = await response.json();
 
-  // Bij twee characters van dezelfde klasse valt de klassekleur samen.
+  // Two characters of the same class would otherwise share a colour.
   const fallback = ["#f8b700", "#3fc7eb", "#ff7c0a", "#aad372"];
   const seen = new Set();
   const datasets = data.series.flatMap((series, index) => {
@@ -24,7 +24,7 @@
         tension: 0.2,
       },
       {
-        label: `${series.name} – M+-score`,
+        label: `${series.name} – M+ score`,
         data: series.mplus_score,
         borderColor: color,
         backgroundColor: color,
@@ -51,7 +51,7 @@
           position: "right",
           grid: { drawOnChartArea: false },
           ticks,
-          title: { display: true, text: "M+-score", color: "#9aa3b2" },
+          title: { display: true, text: "M+ score", color: "#9aa3b2" },
         },
       },
     },

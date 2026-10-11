@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="nl">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -14,13 +14,13 @@
     <nav>
       <a href="/">Planner</a>
       <a href="/characters">Characters</a>
-      <a href="/tasks">Taken</a>
-      <a href="/compare">Vergelijken</a>
+      <a href="/tasks">Tasks</a>
+      <a href="/compare">Compare</a>
     </nav>
     <div class="account">
       <span class="muted">{{ user.battletag }} · {{ user.region|upper }}</span>
-      <form method="post" action="/sync"><button class="primary">Sync nu</button></form>
-      <form method="post" action="/auth/logout"><button>Uitloggen</button></form>
+      <form method="post" action="/sync"><button class="primary">Sync now</button></form>
+      <form method="post" action="/auth/logout"><button>Log out</button></form>
     </div>
     {% endif %}
   </header>

@@ -63,8 +63,8 @@ def test_callback_fetches_characters_with_the_user_token(client, respx_mock, ses
     assert request.headers["Authorization"] == "Bearer authorization_code-token"
     characters = {c.name: c for c in session.exec(select(Character)).all()}
     assert characters["Thrallie"].active
-    assert not characters["Bankalt"].active  # geen max level: standaard verborgen
-    # Publieke profielen gaan via het app-token.
+    assert not characters["Bankalt"].active  # not max level: hidden by default
+    # Public profiles go through the app token.
     assert routes["summary"].calls[0].request.headers["Authorization"] == (
         "Bearer client_credentials-token"
     )
@@ -108,7 +108,7 @@ async def test_valid_token_is_not_refreshed(oauth, session, user, respx_mock):
 async def test_token_is_refreshed_just_before_expiry(oauth, clock, session, user, respx_mock, cipher):
     routes = mock_battlenet(respx_mock)
     oauth.store_token(session, user, TokenResponse("current", 86400, "refresh-me"))
-    clock.now += timedelta(hours=23, minutes=58)  # nog 2 minuten geldig
+    clock.now += timedelta(hours=23, minutes=58)  # valid for 2 more minutes
 
     token = await oauth.get_user_token(session, user)
 
@@ -117,7 +117,7 @@ async def test_token_is_refreshed_just_before_expiry(oauth, clock, session, user
     assert form == {"grant_type": "refresh_token", "refresh_token": "refresh-me"}
     stored = session.exec(select(OAuthToken)).one()
     assert cipher.decrypt(stored.access_token) == "refresh_token-token"
-    # Het nieuwe token is weer 24 uur geldig en wordt niet opnieuw ververst.
+    # The new token is valid for 24 hours again and is not refreshed a second time.
     assert await oauth.get_user_token(session, user) == "refresh_token-token"
     assert routes["token"].call_count == 1
 

@@ -15,7 +15,7 @@ from app.security import TokenCipher
 from app.services import Services
 from app.services.checklist import seed_default_tasks
 
-# Donderdag in de week die woensdag 7 oktober 2026 04:00 UTC begon.
+# Thursday in the week that started Wednesday 7 October 2026 04:00 UTC.
 NOW = datetime(2026, 10, 8, 12, 0, tzinfo=UTC)
 
 

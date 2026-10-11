@@ -180,7 +180,7 @@ def add_task(
 ):
     name = name.strip()[:80]
     if not name:
-        flash(request, "Geef de taak een naam.", "error")
+        flash(request, "Give the task a name.", "error")
     else:
         session.add(
             WeeklyTask(user_id=user.id, name=name, type=type if type in TASK_TYPES else "custom")
@@ -237,7 +237,7 @@ def history(
     user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
 ):
-    """Item level en M+-score per week voor één of meer characters."""
+    """Item level and M+ score per week for one or more characters."""
     characters = [
         _owned_character(session, user, int(i)) for i in ids.split(",") if i.strip().isdigit()
     ]

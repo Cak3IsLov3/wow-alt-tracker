@@ -21,7 +21,7 @@ def logged_in(client, respx_mock):
 def test_login_page_renders(client):
     response = client.get("/login")
     assert response.status_code == 200
-    assert "Inloggen met Battle.net" in response.text
+    assert "Log in with Battle.net" in response.text
 
 
 def test_dashboard_shows_active_characters_and_summary(logged_in):
@@ -32,7 +32,7 @@ def test_dashboard_shows_active_characters_and_summary(logged_in):
     assert "Bankalt" not in response.text
     assert f"Week {week_id(utcnow())}" in response.text
     assert "3/7" in response.text
-    assert "1 character(s) gesynchroniseerd." in response.text
+    assert "1 character(s) synced." in response.text
 
 
 def test_dashboard_filters(logged_in):
@@ -45,18 +45,18 @@ def test_character_page_shows_gear_advice(logged_in):
     response = logged_in.get("/characters/1")
 
     assert response.status_code == 200
-    assert "Je laagste slots zijn Polsen en Riem" in response.text
+    assert "Your lowest slots are Wrists and Waist" in response.text
 
 
 def test_toggle_task_returns_updated_checklist(logged_in, session):
-    vault = session.exec(select(WeeklyTask).where(WeeklyTask.name == "Great Vault ophalen")).one()
+    vault = session.exec(select(WeeklyTask).where(WeeklyTask.name == "Collect Great Vault")).one()
 
     response = logged_in.post(f"/characters/1/tasks/{vault.id}/toggle")
 
     assert response.status_code == 200
-    assert "4/7 voltooid" in response.text
-    assert "<html" not in response.text  # alleen het HTMX-fragment
-    assert "3/7 voltooid" in logged_in.post(f"/characters/1/tasks/{vault.id}/toggle").text
+    assert "4/7 done" in response.text
+    assert "<html" not in response.text  # only the HTMX fragment
+    assert "3/7 done" in logged_in.post(f"/characters/1/tasks/{vault.id}/toggle").text
 
 
 def test_hide_and_show_character(logged_in, session):
@@ -104,7 +104,7 @@ def test_sync_now_reports_api_outage(logged_in):
 
     response = logged_in.post("/sync")
 
-    assert "De Blizzard API is even niet beschikbaar" in response.text
+    assert "The Blizzard API is temporarily unavailable" in response.text
 
 
 async def _no_sleep(delay: float) -> None:

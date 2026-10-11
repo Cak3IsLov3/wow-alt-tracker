@@ -1,6 +1,6 @@
 <div class="checklist" id="checklist-{{ row.character.id }}">
   <div class="progress" title="{{ row.done }}/{{ row.total }}"><span style="width: {{ row.pct }}%"></span></div>
-  <p class="muted small">{{ row.done }}/{{ row.total }} voltooid · {{ row.open }} open</p>
+  <p class="muted small">{{ row.done }}/{{ row.total }} done · {{ row.open }} open</p>
   <ul>
     {% for item in row.tasks %}
     <li class="{{ 'done' if item.completed }}">
@@ -14,7 +14,7 @@
       {% if item.completed and item.source == 'api' %}<span class="badge api">auto</span>{% endif %}
     </li>
     {% else %}
-    <li class="muted">Geen taken ingeschakeld.</li>
+    <li class="muted">No tasks enabled.</li>
     {% endfor %}
   </ul>
 </div>

@@ -1,24 +1,24 @@
 {% extends "base.html" %}
 {% block content %}
 <section class="panel">
-  <h1>Wekelijkse taken</h1>
-  <p class="muted">Ingeschakelde taken verschijnen bij elk actief character. Taken met “auto” worden bij een sync afgevinkt op basis van de API.</p>
+  <h1>Weekly tasks</h1>
+  <p class="muted">Enabled tasks appear for every active character. Tasks marked “auto” are checked off during a sync based on the API.</p>
   <table>
-    <thead><tr><th>Taak</th><th>Type</th><th>Afvinken</th><th></th><th></th></tr></thead>
+    <thead><tr><th>Task</th><th>Type</th><th>Check-off</th><th></th><th></th></tr></thead>
     <tbody>
       {% for task in tasks %}
       <tr class="{{ '' if task.default_on else 'inactive' }}">
         <td>{{ task.name }}</td>
         <td>{{ task_types.get(task.type, task.type) }}</td>
-        <td>{% if task.auto_key %}<span class="badge api">auto</span>{% else %}handmatig{% endif %}</td>
+        <td>{% if task.auto_key %}<span class="badge api">auto</span>{% else %}manual{% endif %}</td>
         <td>
           <form method="post" action="/tasks/{{ task.id }}/toggle">
-            <button>{{ 'Uitzetten' if task.default_on else 'Aanzetten' }}</button>
+            <button>{{ 'Disable' if task.default_on else 'Enable' }}</button>
           </form>
         </td>
         <td>
           {% if not task.auto_key %}
-          <form method="post" action="/tasks/{{ task.id }}/delete"><button class="danger">Verwijderen</button></form>
+          <form method="post" action="/tasks/{{ task.id }}/delete"><button class="danger">Delete</button></form>
           {% endif %}
         </td>
       </tr>
@@ -28,9 +28,9 @@
 </section>
 
 <section class="panel">
-  <h2>Eigen taak toevoegen</h2>
+  <h2>Add a custom task</h2>
   <form method="post" action="/tasks" class="row">
-    <label>Naam <input name="name" required maxlength="80" placeholder="Profession weekly"></label>
+    <label>Name <input name="name" required maxlength="80" placeholder="Profession weekly"></label>
     <label>Type
       <select name="type">
         {% for value, label in task_types.items() %}
@@ -38,7 +38,7 @@
         {% endfor %}
       </select>
     </label>
-    <button class="primary">Toevoegen</button>
+    <button class="primary">Add</button>
   </form>
 </section>
 {% endblock %}

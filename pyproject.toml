@@ -1,7 +1,7 @@
 [project]
 name = "wow-alt-tracker"
 version = "0.1.0"
-description = "Weekly checklist, gear-analyse en voortgang voor je WoW-alts"
+description = "Weekly checklist, gear analysis and progress tracking for your WoW alts"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115",

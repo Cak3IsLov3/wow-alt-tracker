@@ -1,137 +1,139 @@
 # WoW Alt Tracker
 
-Webapp voor WoW-spelers met meerdere characters. Je logt in met Battle.net, de
-app haalt je characters op en toont per character de wekelijkse to-do's, de
-gear-status en de voortgang over tijd.
+A web app for WoW players with several characters. You log in with Battle.net,
+the app fetches your characters and shows the weekly to-dos, gear status and
+progress over time for each of them.
 
-![Planner met alle alts, gesorteerd op openstaande taken](docs/screenshots/planner.png)
+![Planner with all alts, sorted by open tasks](docs/screenshots/planner.png)
 
-| Character: checklist, gear-advies en geschiedenis | Twee characters vergelijken |
+| Character: checklist, gear advice and history | Comparing two characters |
 | --- | --- |
-| ![Characterpagina](docs/screenshots/character.png) | ![Vergelijking](docs/screenshots/compare.png) |
+| ![Character page](docs/screenshots/character.png) | ![Comparison](docs/screenshots/compare.png) |
 
-De screenshots tonen de demodata uit `scripts/demo.py`, geen echt account.
+The screenshots show the demo data from `scripts/demo.py`, not a real account.
 
-## Starten
+## Getting started
 
-1. Maak een client aan op <https://develop.battle.net/access/clients> en zet de
-   redirect-URL op `http://localhost:8000/auth/callback`.
-2. Kopieer `.env.example` naar `.env` en vul `BLIZZARD_CLIENT_ID`,
-   `BLIZZARD_CLIENT_SECRET` en `SECRET_KEY` in.
-3. Start de app:
+1. Create a client at <https://develop.battle.net/access/clients> and set the
+   redirect URL to `http://localhost:8000/auth/callback`.
+2. Copy `.env.example` to `.env` and fill in `BLIZZARD_CLIENT_ID`,
+   `BLIZZARD_CLIENT_SECRET` and `SECRET_KEY`.
+3. Start the app:
 
 ```bash
 uv sync
 uv run uvicorn app.main:app --reload
 ```
 
-Open daarna <http://localhost:8000>. Tests draai je met `uv run pytest`.
+Then open <http://localhost:8000>. Run the tests with `uv run pytest`.
 
-Zonder Battle.net-client kun je de app bekijken met verzonnen data:
+Without a Battle.net client you can look at the app with made-up data:
 
 ```bash
 uv run python -m scripts.demo
 ```
 
-Open dan <http://127.0.0.1:8000/demo-login>.
+Then open <http://127.0.0.1:8000/demo-login>.
 
-## Functies
+## Features
 
-| Onderdeel | Wat het doet |
+| Area | What it does |
 | --- | --- |
-| Login | Battle.net OAuth (Authorization Code Flow), regio EU/US, tokens versleuteld opgeslagen, uitloggen en ontkoppelen |
-| Characters | Alle characters van het account; verbergen/activeren per character |
-| Weekly checklist | Standaardtaken, automatisch afvinken via de API, handmatig afvinken, eigen taken |
-| Gear-analyse | Item level per slot; de laagste slots krijgen de hoogste prioriteit |
-| Planner | Dashboard gesorteerd op meeste openstaande taken, met weeksamenvatting en filters |
-| Geschiedenis | Eén snapshot per character per week; grafiek van item level en M+-score, vergelijking van twee characters |
-| Sync | "Sync nu"-knop en geplande sync (standaard elk uur), met rate limiting, retries en ETag-cache |
+| Login | Battle.net OAuth (Authorization Code Flow), EU/US region, tokens stored encrypted, log out and unlink |
+| Characters | All characters on the account; hide or activate each one |
+| Weekly checklist | Default tasks, automatic check-off through the API, manual check-off, custom tasks |
+| Gear analysis | Item level per slot; the lowest slots get the highest priority |
+| Planner | Dashboard sorted by most open tasks, with a weekly summary and filters |
+| History | One snapshot per character per week; chart of item level and M+ score, comparison of two characters |
+| Sync | "Sync now" button and scheduled sync (hourly by default), with rate limiting, retries and an ETag cache |
 
-## Architectuur
+## Architecture
 
 ```
 app/
-  main.py            app-factory, lifespan, scheduler
-  config.py          instellingen uit .env
-  models.py          SQLModel-tabellen
-  weeks.py           week-ID en reset-logica
-  security.py        Fernet-versleuteling van tokens
+  main.py            app factory, lifespan, scheduler
+  config.py          settings from .env
+  models.py          SQLModel tables
+  weeks.py           week ID and reset logic
+  security.py        Fernet encryption of tokens
   blizzard/
-    oauth.py         authorize-URL, code-exchange, refresh, app-token
-    client.py        rate limiter, retries met backoff, ETag-cache
+    oauth.py         authorize URL, code exchange, refresh, app token
+    client.py        rate limiter, retries with backoff, ETag cache
   services/
-    sync.py          characterlijst + per character: profiel, gear, M+, raids
-    checklist.py     standaardtaken en automatisch afvinken
-    gear.py          slots parsen en upgrade-prioriteit
-    planner.py       dashboardrijen, sortering, filters, samenvatting
-  routes/            auth.py (login/callback/logout) en pages.py (de rest)
+    sync.py          character list + per character: profile, gear, M+, raids
+    checklist.py     default tasks and automatic check-off
+    gear.py          slot parsing and upgrade priority
+    planner.py       dashboard rows, sorting, filters, summary
+  routes/            auth.py (login/callback/logout) and pages.py (the rest)
   templates/, static/  Jinja2 + HTMX, Chart.js
-scripts/demo.py      app met verzonnen data, zonder Battle.net
+scripts/demo.py      app with made-up data, without Battle.net
 tests/               pytest + respx
 ```
 
-De routes zijn dun: ze halen data op via de services en renderen een template.
-Alle logica die getest moet worden (weken, afvinken, gear, retries) staat in
-pure functies of in klassen waar klok en `sleep` injecteerbaar zijn.
+The routes are thin: they fetch data through the services and render a
+template. All logic that needs testing (weeks, check-off, gear, retries) lives
+in pure functions or in classes where the clock and `sleep` can be injected.
 
-### Twee soorten tokens
+### Two kinds of tokens
 
-- **User-token** (Authorization Code Flow): alleen nodig voor
-  `/profile/user/wow`, de characterlijst van het account. Battle.net geeft
-  hierbij normaal geen refresh token mee en het token is 24 uur geldig. Komt er
-  toch een refresh token mee, dan wordt er 5 minuten voor verloop ververst.
-  Anders vraagt de app je opnieuw in te loggen om de characterlijst te verversen.
-- **App-token** (Client Credentials): voor de publieke characterprofielen. De
-  app vernieuwt dit zelf, dus de geplande sync blijft werken als je user-token
-  is verlopen.
+- **User token** (Authorization Code Flow): only needed for
+  `/profile/user/wow`, the account's character list. Battle.net normally does
+  not return a refresh token here and the token is valid for 24 hours. If a
+  refresh token does come back, the app refreshes 5 minutes before expiry.
+  Otherwise it asks you to log in again to refresh the character list.
+- **App token** (Client Credentials): for the public character profiles. The
+  app renews it by itself, so the scheduled sync keeps working after your user
+  token has expired.
 
-### Week-ID en reset
+### Week ID and reset
 
-De reset staat vast in UTC (`app/weeks.py`): EU woensdag 04:00, US dinsdag
-15:00. In Nederland is dat 05:00 in de wintertijd en 06:00 in de zomertijd.
-Het week-ID is het ISO-jaar en de ISO-week van de resetdag (`2026-W41`). Een
-status hoort bij een `week_id`; na de reset bestaat er voor de nieuwe week nog
-geen status en is de checklist dus vanzelf leeg. Er is geen resetjob nodig.
+The reset is fixed in UTC (`app/weeks.py`): EU Wednesday 04:00, US Tuesday
+15:00. In Central Europe that is 05:00 in winter time and 06:00 in summer time.
+The week ID is the ISO year and ISO week of the reset day (`2026-W41`). A
+status belongs to a `week_id`; after the reset there is no status for the new
+week yet, so the checklist is empty by itself. No reset job is needed.
 
-### Automatisch afvinken
+### Automatic check-off
 
-| Taak | Afgevinkt als |
+| Task | Checked off when |
 | --- | --- |
-| Raid – LFR/Normal/Heroic/Mythic | alle bosses van de raid hebben een `last_kill_timestamp` na de reset |
-| Mythic+ – 1/4/8 runs | zoveel runs in `current_period.best_runs` met een timestamp na de reset |
+| Raid – LFR/Normal/Heroic/Mythic | every boss of the raid has a `last_kill_timestamp` after the reset |
+| Mythic+ – 1/4/8 runs | that many runs in `current_period.best_runs` have a timestamp after the reset |
 
-Bij een gedeeltelijke clear zie je de stand als badge (`3/8`). Wat je zelf
-aan- of uitvinkt wordt door een sync niet overschreven.
+A partial clear shows the progress as a badge (`3/8`). Whatever you check or
+uncheck yourself is not overwritten by a sync.
 
-## Gebruikte endpoints en beperkingen
+## Endpoints and limitations
 
-| Endpoint | Gebruikt voor |
+| Endpoint | Used for |
 | --- | --- |
-| `oauth.battle.net/authorize`, `/token`, `/userinfo` | login en tokens |
-| `/profile/user/wow` | characterlijst |
-| `/profile/wow/character/{realm}/{naam}` | level, item level, laatste login |
+| `oauth.battle.net/authorize`, `/token`, `/userinfo` | login and tokens |
+| `/profile/user/wow` | character list |
+| `/profile/wow/character/{realm}/{name}` | level, item level, last login |
 | `…/equipment` | item level per slot |
-| `…/mythic-keystone-profile` | M+-score en runs van deze periode |
-| `…/encounters/raids` | raid-kills per difficulty |
+| `…/mythic-keystone-profile` | M+ score and this period's runs |
+| `…/encounters/raids` | raid kills per difficulty |
 
-- **Great Vault**: de inhoud zit niet in de API. Het is een handmatig af te
-  vinken taak.
-- **Wekelijkse quests**: de API kent alleen "ooit voltooid", niet "deze week".
-  Ook handmatig.
-- **M+-runs zijn een ondergrens**: `best_runs` bevat de beste run per dungeon.
-  Twee keer dezelfde dungeon telt als één run.
-- **Raids**: er wordt gekeken naar de nieuwste expansion in het antwoord, en per
-  difficulty naar de raid waarin deze week is gekilld (anders de nieuwste).
-- **Verouderde data**: characters die sinds de reset niet zijn ingelogd krijgen
-  een waarschuwing. Runs en kills van voor de reset tellen niet mee. Voor
-  characters die heel lang niet zijn ingelogd geeft Blizzard een 404; dat staat
-  dan bij het character.
-- De endpoints, de resettijden en de aanname dat de API ETags teruggeeft zijn
-  niet tegen de live API getest; de tests draaien op gemockte antwoorden.
-  Blizzard past de API per expansion aan, dus controleer bij afwijkingen de
-  [documentatie](https://develop.battle.net/documentation/world-of-warcraft/profile-apis).
+- **Great Vault**: its contents are not in the API. It is a task you check off
+  manually.
+- **Weekly quests**: the API only knows "completed at some point", not "this
+  week". Also manual.
+- **M+ runs are a lower bound**: `best_runs` holds the best run per dungeon.
+  Running the same dungeon twice counts as one run.
+- **Raids**: the app looks at the latest expansion in the response and, per
+  difficulty, at the raid with kills this week (otherwise the newest one).
+- **Stale data**: characters that have not logged in since the reset get a
+  warning. Runs and kills from before the reset do not count. For characters
+  that have not logged in for a very long time Blizzard returns a 404; that is
+  shown on the character.
+- The endpoints, the reset times and the assumption that the API returns ETags
+  have not been tested against the live API; the tests run on mocked
+  responses. Blizzard changes the API per expansion, so check the
+  [documentation](https://develop.battle.net/documentation/world-of-warcraft/profile-apis)
+  if something differs.
 
-## Nog niet gedaan
+## Not done yet
 
-- Docker Compose, PostgreSQL-test, Discord-meldingen, Raider.IO
-- Databasemigraties: tabellen worden bij het opstarten aangemaakt met `create_all`
+- Docker Compose, a PostgreSQL test, Discord notifications, Raider.IO
+- Database migrations: tables are created at startup with `create_all`
+- The interface is English only
